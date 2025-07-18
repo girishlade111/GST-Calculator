@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern GST Calculator</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .calculator-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary {
+            background-color: #2563eb; /* blue-600 */
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8; /* blue-700 */
+        }
+        .result-card {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .result-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Custom radio button styles */
+        .gst-rate-label {
+            transition: all 0.2s ease-in-out;
+        }
+        input[type="radio"]:checked + .gst-rate-label {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
+        <div class="calculator-card rounded-2xl shadow-2xl p-6 md:p-8">
+            <h1 class="text-3xl font-bold text-center mb-2 text-blue-300">GST Calculator</h1>
+            <p class="text-center text-gray-400 mb-6">Calculate Goods and Services Tax accurately.</p>
+
+            <!-- Main Form -->
+            <form id="gstForm" class="space-y-6">
+                <!-- Amount Input -->
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-300 mb-2">Amount (₹)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">₹</span>
+                        <input type="number" id="amount" name="amount" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg pl-8 pr-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter amount" required>
+                    </div>
+                </div>
+
+                <!-- Calculation Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Calculation Type</label>
+                    <div class="flex items-center gap-4 bg-gray-800 border border-gray-600 rounded-lg p-1">
+                        <button type="button" id="addGstBtn" class="w-full py-2 rounded-md text-sm font-semibold focus:outline-none transition bg-blue-600 text-white">Add GST</button>
+                        <button type="button" id="removeGstBtn" class="w-full py-2 rounded-md text-sm font-semibold focus:outline-none transition text-gray-400">Remove GST</button>
+                    </div>
+                </div>
+
+                <!-- GST Rate Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">GST Rate</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div>
+                            <input type="radio" id="gst5" name="gstRate" value="5" class="hidden" checked>
+                            <label for="gst5" class="gst-rate-label block text-center cursor-pointer py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700">5%</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="gst12" name="gstRate" value="12" class="hidden">
+                            <label for="gst12" class="gst-rate-label block text-center cursor-pointer py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700">12%</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="gst18" name="gstRate" value="18" class="hidden">
+                            <label for="gst18" class="gst-rate-label block text-center cursor-pointer py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700">18%</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="gst28" name="gstRate" value="28" class="hidden">
+                            <label for="gst28" class="gst-rate-label block text-center cursor-pointer py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700">28%</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Display -->
+        <div id="results" class="result-card mt-6 bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <p class="text-gray-400">Initial Amount</p>
+                <p id="initialAmountResult" class="text-xl font-semibold text-white">₹0.00</p>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <p class="text-gray-400">GST Amount</p>
+                <p id="gstAmountResult" class="text-xl font-semibold text-white">₹0.00</p>
+            </div>
+            <hr class="border-gray-700 my-4">
+            <div class="flex justify-between items-center font-bold">
+                <p id="totalLabel" class="text-blue-300 text-lg">Total Amount</p>
+                <p id="totalAmountResult" class="text-2xl text-blue-300">₹0.00</p>
+            </div>
+        </div>
+        
+        <!-- Error Message Box -->
+        <div id="errorBox" class="hidden mt-4 bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg relative" role="alert">
+            <strong class="font-bold">Error:</strong>
+            <span class="block sm:inline" id="errorMessage"></span>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM Elements
+        const amountInput = document.getElementById('amount');
+        const addGstBtn = document.getElementById('addGstBtn');
+        const removeGstBtn = document.getElementById('removeGstBtn');
+        const gstRateRadios = document.querySelectorAll('input[name="gstRate"]');
+        const resultsDiv = document.getElementById('results');
+        const initialAmountResult = document.getElementById('initialAmountResult');
+        const gstAmountResult = document.getElementById('gstAmountResult');
+        const totalAmountResult = document.getElementById('totalAmountResult');
+        const totalLabel = document.getElementById('totalLabel');
+        const errorBox = document.getElementById('errorBox');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let calculationType = 'add'; // 'add' or 'remove'
+
+        // --- Event Listeners ---
+
+        // Listen for input on the amount field and radio buttons to calculate automatically
+        amountInput.addEventListener('input', calculate);
+        gstRateRadios.forEach(radio => radio.addEventListener('change', calculate));
+
+        // Toggle between Add GST and Remove GST
+        addGstBtn.addEventListener('click', () => {
+            calculationType = 'add';
+            toggleCalculationType(addGstBtn, removeGstBtn);
+            calculate();
+        });
+
+        removeGstBtn.addEventListener('click', () => {
+            calculationType = 'remove';
+            toggleCalculationType(removeGstBtn, addGstBtn);
+            calculate();
+        });
+
+        // --- Functions ---
+
+        /**
+         * Toggles the active state for the calculation type buttons.
+         * @param {HTMLElement} activeButton - The button to activate.
+         * @param {HTMLElement} inactiveButton - The button to deactivate.
+         */
+        function toggleCalculationType(activeButton, inactiveButton) {
+            activeButton.classList.add('bg-blue-600', 'text-white');
+            activeButton.classList.remove('text-gray-400');
+            inactiveButton.classList.remove('bg-blue-600', 'text-white');
+            inactiveButton.classList.add('text-gray-400');
+        }
+
+        /**
+         * Main calculation function.
+         */
+        function calculate() {
+            const amount = parseFloat(amountInput.value);
+            const gstRate = parseFloat(document.querySelector('input[name="gstRate"]:checked').value);
+
+            // Input validation
+            if (isNaN(amount) || amount <= 0) {
+                resetResults();
+                if (amountInput.value) showError('Please enter a valid positive amount.');
+                else hideError();
+                return;
+            }
+            hideError();
+
+            let initialAmount, gstAmount, totalAmount;
+
+            if (calculationType === 'add') {
+                initialAmount = amount;
+                gstAmount = initialAmount * (gstRate / 100);
+                totalAmount = initialAmount + gstAmount;
+                totalLabel.textContent = 'Total Amount';
+            } else { // 'remove'
+                totalAmount = amount;
+                initialAmount = totalAmount / (1 + (gstRate / 100));
+                gstAmount = totalAmount - initialAmount;
+                totalLabel.textContent = 'Net Amount';
+            }
+
+            updateResults(initialAmount, gstAmount, totalAmount);
+        }
+
+        /**
+         * Updates the result display with calculated values.
+         * @param {number} initial - The initial amount.
+         * @param {number} gst - The GST amount.
+         * @param {number} total - The total/net amount.
+         */
+        function updateResults(initial, gst, total) {
+            const formatter = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+
+            initialAmountResult.textContent = formatter.format(initial);
+            gstAmountResult.textContent = formatter.format(gst);
+            totalAmountResult.textContent = formatter.format(total);
+
+            // Show the results card with an animation
+            if (!resultsDiv.classList.contains('show')) {
+                resultsDiv.classList.add('show');
+            }
+        }
+
+        /**
+         * Resets the result display to zero.
+         */
+        function resetResults() {
+            initialAmountResult.textContent = '₹0.00';
+            gstAmountResult.textContent = '₹0.00';
+            totalAmountResult.textContent = '₹0.00';
+            resultsDiv.classList.remove('show');
+        }
+
+        /**
+         * Shows an error message.
+         * @param {string} message - The error message to display.
+         */
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorBox.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the error message box.
+         */
+        function hideError() {
+            errorBox.classList.add('hidden');
+        }
+
+        // Initial call to set the default state
+        calculate();
+    </script>
+</body>
+</html>
